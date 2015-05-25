@@ -8,7 +8,13 @@ import org.hogedriven.s3fx.client.AmazonS3Builder;
 import org.hogedriven.s3fx.client.AmazonS3MockBuilder;
 import org.hogedriven.s3fx.client.S3Wrapper;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 /**
@@ -72,5 +78,25 @@ public class S3ConfigController implements Initializable {
         accessKey.disableProperty().bind(basicMode.selectedProperty().not());
         secretKey.disableProperty().bind(basicMode.selectedProperty().not());
         proxy.disableProperty().bind(mockMode.selectedProperty());
+
+        loadProperty();
+    }
+
+    /**
+     * プロパティファイルがあったら読む。
+     */
+    private void loadProperty() {
+        File file = new File("s3fx.properties");
+        if (!file.exists()) return;
+        try (Reader reader = Files.newBufferedReader(file.toPath())) {
+            Properties properties = new Properties();
+            properties.load(reader);
+            accessKey.setText(properties.getProperty("accessKey"));
+            secretKey.setText(properties.getProperty("secretKey"));
+            proxy.setText(properties.getProperty("proxy"));
+            fixBucket.setText(properties.getProperty("fixBucket"));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
