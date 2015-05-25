@@ -21,11 +21,13 @@ public class AmazonS3Builder {
 
     private Consumer<AmazonS3> verifier;
     private boolean readOnly = false;
+    private String fixBucket;
 
     public S3Wrapper build() {
         AmazonS3Client client = new AmazonS3Client(credentials, createClientConfig());
         if (verifier != null) verifier.accept(client);
-        return new S3WrapperImpl(client, readOnly);
+        if (fixBucket == null || fixBucket.isEmpty()) return new S3WrapperImpl(client, readOnly);
+        return new FixBucketClient(client, fixBucket, readOnly);
     }
 
     private ClientConfiguration createClientConfig() {
@@ -61,6 +63,11 @@ public class AmazonS3Builder {
 
     public AmazonS3Builder readOnlyLock(boolean flg) {
         this.readOnly = flg;
+        return this;
+    }
+
+    public AmazonS3Builder fixBucket(String fixBucket) {
+        this.fixBucket = fixBucket;
         return this;
     }
 }
