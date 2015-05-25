@@ -25,6 +25,7 @@ public class S3ConfigController implements Initializable {
     public RadioButton basicMode;
     public CheckBox readOnly;
     public TextField fixBucket;
+    public CheckBox connectCheck;
 
     public S3ConfigController(Dialog<S3Wrapper> dialog) {
         dialog.setResultConverter(this::createResult);
@@ -57,11 +58,13 @@ public class S3ConfigController implements Initializable {
     }
 
     private void ownerCheck(AmazonS3 client) {
-        Owner owner = client.getS3AccountOwner();
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setHeaderText("S3に接続しました");
-        alert.setContentText("Account Owner Name: " + owner.getDisplayName());
-        alert.showAndWait();
+        if (connectCheck.isSelected()) {
+            Owner owner = client.getS3AccountOwner();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText("S3に接続できました");
+            alert.setContentText("Account Owner Name: " + owner.getDisplayName());
+            alert.showAndWait();
+        }
     }
 
     @Override

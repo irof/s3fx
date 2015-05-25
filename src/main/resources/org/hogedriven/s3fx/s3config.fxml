@@ -56,16 +56,22 @@
                   <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="10.0" prefWidth="210.0" />
                </columnConstraints>
                <rowConstraints>
-                  <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" vgrow="SOMETIMES" />
                </rowConstraints>
                <children>
                   <CheckBox fx:id="readOnly" mnemonicParsing="false" selected="true" text="うっかり更新防止ロック" GridPane.columnSpan="2" />
-                  <Label text="Bucketを固定する" GridPane.rowIndex="1" />
-                  <TextField fx:id="fixBucket" promptText="入力したら固定されます" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <TextField fx:id="proxy" promptText="host:port" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                  <Label text="プロキシ" GridPane.rowIndex="2" />
+                  <Label text="Bucketを固定する" GridPane.rowIndex="2" />
+                  <TextField fx:id="fixBucket" promptText="入力したら固定されます" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <TextField fx:id="proxy" promptText="host:port" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                  <Label text="プロキシ" GridPane.rowIndex="3" />
+                  <CheckBox fx:id="connectCheck" mnemonicParsing="false" selected="true" text="接続時に検証する" GridPane.columnSpan="2" GridPane.rowIndex="1">
+                     <tooltip>
+                        <Tooltip text="AmazonS3.getS3AccountOwner() を使用した検証を行います" />
+                     </tooltip>
+                  </CheckBox>
                </children>
                <padding>
                   <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
