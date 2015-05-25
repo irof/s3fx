@@ -108,7 +108,6 @@ public class S3BucketController implements Initializable {
         getBuckets();
         bucket.setItems(buckets);
         bucket.setCellFactory(this::createBucketCell);
-        bucket.setPromptText("Bucketを選択してください");
         bucket.setConverter(new StringConverter<Bucket>() {
             @Override
             public String toString(Bucket object) {

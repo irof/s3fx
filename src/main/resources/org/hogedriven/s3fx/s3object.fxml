@@ -47,7 +47,7 @@
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
          </padding>
       </HBox>
-      <TextArea fx:id="observationWindow" VBox.vgrow="ALWAYS" />
+      <TextArea fx:id="observationWindow" editable="false" promptText="チラ見窓です。ボタンおしたら先頭部分だけここに出るです。" VBox.vgrow="ALWAYS" />
    </children>
    <padding>
       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

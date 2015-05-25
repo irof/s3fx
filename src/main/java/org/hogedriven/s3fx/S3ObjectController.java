@@ -91,6 +91,5 @@ public class S3ObjectController implements Initializable {
         boolean isText = contentType != null && contentType.startsWith("text");
         observationButton.setDisable(!isText);
         observationWindow.setDisable(!isText);
-        observationWindow.setPromptText("チラ見窓です。ボタンおしたら先頭部分だけここに出るです。");
     }
 }

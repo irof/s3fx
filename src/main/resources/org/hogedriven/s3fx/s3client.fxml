@@ -9,7 +9,7 @@
    <children>
       <HBox spacing="5.0" VBox.vgrow="NEVER">
          <children>
-            <ComboBox fx:id="bucket" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="250.0" HBox.hgrow="ALWAYS" />
+            <ComboBox fx:id="bucket" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="250.0" promptText="Bucketを選択してください" HBox.hgrow="ALWAYS" />
             <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#getBuckets" text="再取得" />
             <Button fx:id="createBucketButton" maxWidth="-Infinity" mnemonicParsing="false" onAction="#createBucket" text="+" />
             <Button fx:id="deleteBucketButton" maxWidth="-Infinity" mnemonicParsing="false" onAction="#deleteBucket" text="-" />
