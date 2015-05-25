@@ -26,7 +26,7 @@ public class Starter extends Application {
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("s3client.fxml"));
         loader.setControllerFactory(clz -> new S3BucketController(stage, client));
-        stage.setTitle("S34FX - JavaFX S3 Client");
+        stage.setTitle("S3FX - JavaFX Amazon S3 Client");
         stage.setScene(new Scene(loader.load()));
 
         setExceptionHandler();
