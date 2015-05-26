@@ -16,33 +16,32 @@ import java.util.regex.Pattern;
  */
 public class AmazonS3Builder {
 
-    private String proxyText;
     private AWSCredentials credentials;
 
     private Consumer<AmazonS3> verifier;
     private boolean readOnly = false;
     private String fixBucket;
 
+    private final ClientConfiguration config = new ClientConfiguration();
+
     public S3Wrapper build() {
-        AmazonS3Client client = new AmazonS3Client(credentials, createClientConfig());
+        AmazonS3Client client = new AmazonS3Client(credentials, config);
         if (verifier != null) verifier.accept(client);
         if (fixBucket == null || fixBucket.isEmpty()) return new S3WrapperImpl(client, readOnly);
         return new FixBucketClient(client, fixBucket, readOnly);
     }
 
-    private ClientConfiguration createClientConfig() {
-        ClientConfiguration config = new ClientConfiguration();
+    /**
+     * プロキシの設定
+     * @param proxyText プロキシ設定（フォーマット "host:port"）
+     */
+    public AmazonS3Builder withProxy(String proxyText) {
         Pattern pattern = Pattern.compile("(.+):(\\d+)");
         Matcher matcher = pattern.matcher(proxyText);
         if (matcher.matches()) {
             config.setProxyHost(matcher.group(1));
             config.setProxyPort(Integer.valueOf(matcher.group(2)));
         }
-        return config;
-    }
-
-    public AmazonS3Builder withProxy(String text) {
-        proxyText = text;
         return this;
     }
 
