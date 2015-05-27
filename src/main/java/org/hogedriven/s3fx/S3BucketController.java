@@ -25,7 +25,6 @@ import java.io.UncheckedIOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Supplier;
 
@@ -34,7 +33,6 @@ import java.util.function.Supplier;
  */
 public class S3BucketController implements Initializable {
     private final S3Wrapper client;
-    private Optional<Bucket> currentBucket = Optional.empty();
 
     private final Stage stage;
     private final Map<S3ObjectIdentifier, Stage> objectWindows = new HashMap<>();
@@ -56,7 +54,7 @@ public class S3BucketController implements Initializable {
         this.stage = stage;
         this.client = client;
         this.listObjectsService = createS3Service(() ->
-                FXCollections.observableArrayList(client.listObjects(currentBucket.get())));
+                FXCollections.observableArrayList(client.listObjects(bucket.getValue())));
     }
 
     private <T> Service<T> createS3Service(Supplier<T> method) {
@@ -88,8 +86,8 @@ public class S3BucketController implements Initializable {
     }
 
     public void deleteBucket() {
-        currentBucket.ifPresent(client::deleteBucket);
-        currentBucket.ifPresent(buckets::remove);
+        client.deleteBucket(bucket.getValue());
+        buckets.remove(bucket.getValue());
         bucket.getSelectionModel().clearSelection();
     }
 
@@ -105,7 +103,7 @@ public class S3BucketController implements Initializable {
         dialog.setContentText("Key :");
 
         dialog.showAndWait().ifPresent(name -> {
-            client.putObject(currentBucket.get(), name, file);
+            client.putObject(bucket.getValue(), name, file);
             listObjectsService.restart();
         });
     }
@@ -142,7 +140,6 @@ public class S3BucketController implements Initializable {
             }
         });
         bucket.valueProperty().addListener((observable, oldValue, newValue) -> {
-            currentBucket = Optional.ofNullable(newValue);
             listObjectsService.restart();
         });
         bucket.disableProperty().bind(progress.visibleProperty());
