@@ -27,6 +27,8 @@ public class AmazonS3Builder {
     private final ClientConfiguration config = new ClientConfiguration();
 
     public S3Adapter build() {
+        // とりあえずタイムアウトなしにしとく
+        config.withConnectionTimeout(0).withSocketTimeout(0);
         AmazonS3Client client = new AmazonS3Client(credentials, config);
         if (verifier != null) verifier.accept(client);
 
