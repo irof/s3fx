@@ -11,12 +11,16 @@ import java.util.List;
 public interface S3Wrapper {
     List<Bucket> listBuckets();
 
+    @Bang
     Bucket createBucket(String name);
 
+    @Bang
     void deleteBucket(Bucket bucket);
 
+    @Bang
     void putObject(Bucket bucket, String key, File srcFile);
 
+    @Bang
     void deleteObject(S3ObjectSummary summary);
 
     List<S3ObjectSummary> listObjects(Bucket bucket);
