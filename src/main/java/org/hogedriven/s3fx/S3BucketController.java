@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.function.Supplier;
 
 /**
  * @author irof
@@ -53,14 +54,18 @@ public class S3BucketController implements Initializable {
     public S3BucketController(Stage stage, S3Wrapper client) {
         this.stage = stage;
         this.client = client;
-        this.listObjectsService = new Service<ObservableList<S3ObjectSummary>>() {
+        this.listObjectsService = createS3Service(() ->
+                FXCollections.observableArrayList(client.listObjects(currentBucket.get())));
+    }
+
+    private <T> Service<T> createS3Service(Supplier<T> method) {
+        return new Service<T>() {
             @Override
-            protected Task<ObservableList<S3ObjectSummary>> createTask() {
-                return new Task<ObservableList<S3ObjectSummary>>() {
+            protected Task<T> createTask() {
+                return new Task<T>() {
                     @Override
-                    protected ObservableList<S3ObjectSummary> call() throws Exception {
-                        return FXCollections.observableArrayList(
-                                client.listObjects(currentBucket.get()));
+                    protected T call() throws Exception {
+                        return method.get();
                     }
                 };
             }
