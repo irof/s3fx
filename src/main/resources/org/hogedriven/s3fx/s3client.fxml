@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.*?>
 <?import javafx.geometry.*?>
 <?import java.lang.*?>
 <?import javafx.scene.control.*?>
@@ -21,7 +23,12 @@
             <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#deleteFile" text="Delete" />
          </children>
       </HBox>
-      <ListView fx:id="objectList" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" VBox.vgrow="ALWAYS" />
+      <StackPane>
+         <children>
+            <ListView fx:id="objectList" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" VBox.vgrow="ALWAYS" />
+            <ProgressIndicator fx:id="progress" visible="false" />
+         </children>
+      </StackPane>
    </children>
    <opaqueInsets>
       <Insets />

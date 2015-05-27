@@ -6,6 +6,8 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
@@ -31,6 +33,7 @@ import java.util.ResourceBundle;
  */
 public class S3BucketController implements Initializable {
     private final S3Wrapper client;
+    public ProgressIndicator progress;
     private Optional<Bucket> currentBucket = Optional.empty();
 
     private final Stage stage;
@@ -42,13 +45,26 @@ public class S3BucketController implements Initializable {
     public Button uploadButton;
 
     public ListView<S3ObjectSummary> objectList;
-    private ObservableList<S3ObjectSummary> objects = FXCollections.observableArrayList();
     public Button createBucketButton;
     public Button deleteBucketButton;
+
+    private final Service<ObservableList<S3ObjectSummary>> listObjectsService;
 
     public S3BucketController(Stage stage, S3Wrapper client) {
         this.stage = stage;
         this.client = client;
+        this.listObjectsService = new Service<ObservableList<S3ObjectSummary>>() {
+            @Override
+            protected Task<ObservableList<S3ObjectSummary>> createTask() {
+                return new Task<ObservableList<S3ObjectSummary>>() {
+                    @Override
+                    protected ObservableList<S3ObjectSummary> call() throws Exception {
+                        return FXCollections.observableArrayList(
+                                client.listObjects(currentBucket.get()));
+                    }
+                };
+            }
+        };
     }
 
     public void getBuckets() {
@@ -84,23 +100,18 @@ public class S3BucketController implements Initializable {
 
         dialog.showAndWait().ifPresent(name -> {
             client.putObject(currentBucket.get(), name, file);
-            refreshObjects();
+            listObjectsService.restart();
         });
     }
 
     public void deleteFile() {
         S3ObjectSummary selectedItem = objectList.getSelectionModel().getSelectedItem();
         client.deleteObject(selectedItem);
-        objects.remove(selectedItem);
+        objectList.getItems().remove(selectedItem);
         S3ObjectIdentifier id = new S3ObjectIdentifier(selectedItem);
         if (objectWindows.containsKey(id)) {
-            objectWindows.get(id).close();
+            objectWindows.remove(id).close();
         }
-    }
-
-    private void refreshObjects() {
-        objects.clear();
-        currentBucket.ifPresent(bucket -> objects.addAll(client.listObjects(bucket)));
     }
 
     @Override
@@ -122,11 +133,13 @@ public class S3BucketController implements Initializable {
         });
         bucket.valueProperty().addListener((observable, oldValue, newValue) -> {
             currentBucket = Optional.ofNullable(newValue);
-            refreshObjects();
+            listObjectsService.restart();
         });
 
-        objectList.setItems(objects);
+        objectList.itemsProperty().bind(listObjectsService.valueProperty());
+
         objectList.setCellFactory(this::createObjectCell);
+        progress.visibleProperty().bind(listObjectsService.runningProperty());
 
         BooleanBinding bucketNotSelected = Bindings.isNull(bucket.valueProperty());
         deleteBucketButton.disableProperty().bind(bucketNotSelected);
