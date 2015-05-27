@@ -1,7 +1,12 @@
 package org.hogedriven.s3fx;
 
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
@@ -32,6 +37,7 @@ public class S3ObjectController implements Initializable {
     private final S3ObjectSummary summary;
     public ComboBox<Charset> observationCharset;
     public Slider observationSize;
+    public ProgressIndicator indicator;
 
     public S3ObjectController(Stage stage, S3Adapter client, S3ObjectSummary summary) {
         this.stage = stage;
@@ -62,7 +68,21 @@ public class S3ObjectController implements Initializable {
                 if (destFile.exists()) {
                     throw new UnsupportedOperationException("同じ名前のファイルがあるよ");
                 }
-                client.getObject(summary, destFile);
+                Service<Void> service = new Service<Void>() {
+                    @Override
+                    protected Task<Void> createTask() {
+                        return new Task<Void>() {
+                            @Override
+                            protected Void call() throws Exception {
+                                client.getObject(summary, destFile);
+                                return null;
+                            }
+                        };
+                    }
+                };
+                indicator.visibleProperty().unbind();
+                indicator.visibleProperty().bind(service.runningProperty());
+                service.start();
             }
         } finally {
             stage.setTitle(title);
