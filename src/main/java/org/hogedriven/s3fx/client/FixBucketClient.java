@@ -14,12 +14,10 @@ import java.util.List;
 public class FixBucketClient implements S3Wrapper {
     private final AmazonS3 client;
     private final String bucketName;
-    private final boolean readOnly;
 
-    public FixBucketClient(AmazonS3 client, String bucketName, boolean readOnly) {
+    public FixBucketClient(AmazonS3 client, String bucketName) {
         this.client = client;
         this.bucketName = bucketName;
-        this.readOnly = readOnly;
     }
 
     @Override
@@ -39,13 +37,11 @@ public class FixBucketClient implements S3Wrapper {
 
     @Override
     public void putObject(Bucket bucket, String key, File srcFile) {
-        verify();
         client.putObject(bucketName, key, srcFile);
     }
 
     @Override
     public void deleteObject(S3ObjectSummary summary) {
-        verify();
         client.deleteObject(summary.getBucketName(), summary.getKey());
     }
 
@@ -73,9 +69,5 @@ public class FixBucketClient implements S3Wrapper {
     @Override
     public ObjectMetadata getObjectMetadata(S3ObjectSummary summary) {
         return client.getObjectMetadata(summary.getBucketName(), summary.getKey());
-    }
-
-    private void verify() {
-        if (readOnly) throw new IllegalStateException("更新禁止となっております");
     }
 }

@@ -1,6 +1,7 @@
 package org.hogedriven.s3fx.client;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
 
 import java.io.File;
@@ -12,11 +13,9 @@ import java.util.List;
  */
 public class S3WrapperImpl implements S3Wrapper {
     private final AmazonS3 client;
-    private final boolean readOnly;
 
-    public S3WrapperImpl(AmazonS3 client, boolean readOnly) {
+    public S3WrapperImpl(AmazonS3Client client) {
         this.client = client;
-        this.readOnly = readOnly;
     }
 
     @Override
@@ -26,25 +25,21 @@ public class S3WrapperImpl implements S3Wrapper {
 
     @Override
     public Bucket createBucket(String bucketName) {
-        verify();
         return client.createBucket(bucketName);
     }
 
     @Override
     public void deleteBucket(Bucket bucket) {
-        verify();
         client.deleteBucket(bucket.getName());
     }
 
     @Override
     public void putObject(Bucket bucket, String key, File srcFile) {
-        verify();
         client.putObject(bucket.getName(), key, srcFile);
     }
 
     @Override
     public void deleteObject(S3ObjectSummary summary) {
-        verify();
         client.deleteObject(summary.getBucketName(), summary.getKey());
     }
 
@@ -72,9 +67,5 @@ public class S3WrapperImpl implements S3Wrapper {
     @Override
     public ObjectMetadata getObjectMetadata(S3ObjectSummary summary) {
         return client.getObjectMetadata(summary.getBucketName(), summary.getKey());
-    }
-
-    private void verify() {
-        if (readOnly) throw new IllegalStateException("更新禁止となっております");
     }
 }
