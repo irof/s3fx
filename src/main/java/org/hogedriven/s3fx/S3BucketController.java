@@ -17,7 +17,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.StringConverter;
-import org.hogedriven.s3fx.client.S3Wrapper;
+import org.hogedriven.s3fx.client.S3Adapter;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  * @author irof
  */
 public class S3BucketController implements Initializable {
-    private final S3Wrapper client;
+    private final S3Adapter client;
 
     private final Stage stage;
     private final Map<S3ObjectIdentifier, Stage> objectWindows = new HashMap<>();
@@ -50,7 +50,7 @@ public class S3BucketController implements Initializable {
     private final Service<ObservableList<Bucket>> listBucketsService;
     private final Service<ObservableList<S3ObjectSummary>> listObjectsService;
 
-    public S3BucketController(Stage stage, S3Wrapper client) {
+    public S3BucketController(Stage stage, S3Adapter client) {
         this.stage = stage;
         this.client = client;
         this.listBucketsService = createS3Service(() ->

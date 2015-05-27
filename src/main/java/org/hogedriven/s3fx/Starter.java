@@ -8,7 +8,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
-import org.hogedriven.s3fx.client.S3Wrapper;
+import org.hogedriven.s3fx.client.S3Adapter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -22,7 +22,7 @@ public class Starter extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        S3Wrapper client = createAmazonS3Client();
+        S3Adapter client = createAmazonS3Client();
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("s3client.fxml"));
         loader.setControllerFactory(clz -> new S3BucketController(stage, client));
@@ -33,8 +33,8 @@ public class Starter extends Application {
         stage.show();
     }
 
-    private S3Wrapper createAmazonS3Client() throws IOException {
-        Dialog<S3Wrapper> dialog = new Dialog<>();
+    private S3Adapter createAmazonS3Client() throws IOException {
+        Dialog<S3Adapter> dialog = new Dialog<>();
 
         FXMLLoader loader = new FXMLLoader(this.getClass().getResource("s3config.fxml"));
         loader.setControllerFactory(clz -> new S3ConfigController(dialog));

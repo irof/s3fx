@@ -26,23 +26,23 @@ public class AmazonS3Builder {
 
     private final ClientConfiguration config = new ClientConfiguration();
 
-    public S3Wrapper build() {
+    public S3Adapter build() {
         AmazonS3Client client = new AmazonS3Client(credentials, config);
         if (verifier != null) verifier.accept(client);
 
-        S3Wrapper s3Wrapper = (fixBucket != null && !fixBucket.isEmpty()) ?
-                new FixBucketClient(client, fixBucket) : new S3WrapperImpl(client);
-        return (S3Wrapper) Proxy.newProxyInstance(
+        S3Adapter s3Adapter = (fixBucket != null && !fixBucket.isEmpty()) ?
+                new SingleBucketS3Adapter(client, fixBucket) : new S3AdapterImpl(client);
+        return (S3Adapter) Proxy.newProxyInstance(
                 ClassLoader.getSystemClassLoader(),
-                new Class[]{S3Wrapper.class},
-                createInvocationHandler(s3Wrapper));
+                new Class[]{S3Adapter.class},
+                createInvocationHandler(s3Adapter));
     }
 
-    private InvocationHandler createInvocationHandler(S3Wrapper s3Wrapper) {
+    private InvocationHandler createInvocationHandler(S3Adapter s3Adapter) {
         return (proxy, method, args) -> {
             if (readOnly && method.isAnnotationPresent(Bang.class))
                 throw new IllegalStateException("ちゃいるどろっくなう");
-            return method.invoke(s3Wrapper, args);
+            return method.invoke(s3Adapter, args);
         };
     }
 

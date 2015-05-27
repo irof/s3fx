@@ -16,10 +16,10 @@ import java.util.stream.Stream;
  */
 public class AmazonS3MockBuilder {
 
-    public S3Wrapper build() {
-        return (S3Wrapper) Proxy.newProxyInstance(
+    public S3Adapter build() {
+        return (S3Adapter) Proxy.newProxyInstance(
                 ClassLoader.getSystemClassLoader(),
-                new Class[]{S3Wrapper.class},
+                new Class[]{S3Adapter.class},
                 createInvocationHandler());
     }
 

@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * @author irof
  */
-public interface S3Wrapper {
+public interface S3Adapter {
     List<Bucket> listBuckets();
 
     @Bang

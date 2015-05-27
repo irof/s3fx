@@ -5,39 +5,36 @@ import com.amazonaws.services.s3.model.*;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * @author irof
  */
-public class FixBucketClient implements S3Wrapper {
-    private final AmazonS3 client;
-    private final String bucketName;
+public class S3AdapterImpl implements S3Adapter {
+    protected final AmazonS3 client;
 
-    public FixBucketClient(AmazonS3 client, String bucketName) {
+    public S3AdapterImpl(AmazonS3 client) {
         this.client = client;
-        this.bucketName = bucketName;
     }
 
     @Override
     public List<Bucket> listBuckets() {
-        return Collections.singletonList(new Bucket(bucketName));
+        return client.listBuckets();
     }
 
     @Override
     public Bucket createBucket(String bucketName) {
-        throw new UnsupportedOperationException();
+        return client.createBucket(bucketName);
     }
 
     @Override
     public void deleteBucket(Bucket bucket) {
-        throw new UnsupportedOperationException();
+        client.deleteBucket(bucket.getName());
     }
 
     @Override
     public void putObject(Bucket bucket, String key, File srcFile) {
-        client.putObject(bucketName, key, srcFile);
+        client.putObject(bucket.getName(), key, srcFile);
     }
 
     @Override
@@ -48,7 +45,7 @@ public class FixBucketClient implements S3Wrapper {
     @Override
     public List<S3ObjectSummary> listObjects(Bucket bucket) {
         List<S3ObjectSummary> objects = new ArrayList<>();
-        ObjectListing listing = client.listObjects(bucketName);
+        ObjectListing listing = client.listObjects(bucket.getName());
         do {
             objects.addAll(listing.getObjectSummaries());
             listing = client.listNextBatchOfObjects(listing);

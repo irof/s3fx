@@ -6,7 +6,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import org.hogedriven.s3fx.client.AmazonS3Builder;
 import org.hogedriven.s3fx.client.AmazonS3MockBuilder;
-import org.hogedriven.s3fx.client.S3Wrapper;
+import org.hogedriven.s3fx.client.S3Adapter;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,11 +33,11 @@ public class S3ConfigController implements Initializable {
     public TextField fixBucket;
     public CheckBox connectCheck;
 
-    public S3ConfigController(Dialog<S3Wrapper> dialog) {
+    public S3ConfigController(Dialog<S3Adapter> dialog) {
         dialog.setResultConverter(this::createResult);
     }
 
-    private S3Wrapper createResult(ButtonType button) {
+    private S3Adapter createResult(ButtonType button) {
         if (button.getButtonData().isCancelButton()) return null;
 
         if (mockMode.isSelected()) {
