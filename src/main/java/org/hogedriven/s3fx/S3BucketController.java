@@ -38,7 +38,6 @@ public class S3BucketController implements Initializable {
     private final Map<S3ObjectIdentifier, Stage> objectWindows = new HashMap<>();
 
     public ComboBox<Bucket> bucket;
-    private ObservableList<Bucket> buckets = FXCollections.observableArrayList();
     public Button refreshBucketsButton;
     public Button createBucketButton;
     public Button deleteBucketButton;
@@ -48,23 +47,26 @@ public class S3BucketController implements Initializable {
     public Button deleteButton;
     public Button uploadButton;
 
+    private final Service<ObservableList<Bucket>> listBucketsService;
     private final Service<ObservableList<S3ObjectSummary>> listObjectsService;
 
     public S3BucketController(Stage stage, S3Wrapper client) {
         this.stage = stage;
         this.client = client;
+        this.listBucketsService = createS3Service(() ->
+                FXCollections.observableArrayList(client.listBuckets()));
         this.listObjectsService = createS3Service(() ->
                 FXCollections.observableArrayList(client.listObjects(bucket.getValue())));
     }
 
-    private <T> Service<T> createS3Service(Supplier<T> method) {
+    private <T> Service<T> createS3Service(Supplier<T> task) {
         return new Service<T>() {
             @Override
             protected Task<T> createTask() {
                 return new Task<T>() {
                     @Override
                     protected T call() throws Exception {
-                        return method.get();
+                        return task.get();
                     }
                 };
             }
@@ -72,8 +74,7 @@ public class S3BucketController implements Initializable {
     }
 
     public void getBuckets() {
-        buckets.clear();
-        buckets.addAll(client.listBuckets());
+        listBucketsService.restart();
     }
 
     public void createBucket() {
@@ -82,12 +83,13 @@ public class S3BucketController implements Initializable {
         dialog.setHeaderText("作りたいBucketの名前を入力してください");
         dialog.setContentText("new Bucket Name :");
 
-        dialog.showAndWait().ifPresent(name -> buckets.add(client.createBucket(name)));
+        dialog.showAndWait().ifPresent(name ->
+                bucket.getItems().add(client.createBucket(name)));
     }
 
     public void deleteBucket() {
         client.deleteBucket(bucket.getValue());
-        buckets.remove(bucket.getValue());
+        bucket.getItems().remove(bucket.getValue());
         bucket.getSelectionModel().clearSelection();
     }
 
@@ -120,12 +122,11 @@ public class S3BucketController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        getBuckets();
+        // サービス実行中はインジケーター表示
+        progress.visibleProperty().bind(listBucketsService.runningProperty()
+                .or(listObjectsService.runningProperty()));
 
-        // サービス実行中にインジケーター表示
-        progress.visibleProperty().bind(listObjectsService.runningProperty());
-
-        bucket.setItems(buckets);
+        bucket.itemsProperty().bind(listBucketsService.valueProperty());
         bucket.setCellFactory(this::createBucketCell);
         bucket.setConverter(new StringConverter<Bucket>() {
             @Override
@@ -142,13 +143,14 @@ public class S3BucketController implements Initializable {
         bucket.valueProperty().addListener((observable, oldValue, newValue) -> {
             listObjectsService.restart();
         });
-        bucket.disableProperty().bind(progress.visibleProperty());
-        refreshBucketsButton.disableProperty().bind(progress.visibleProperty());
-        createBucketButton.disableProperty().bind(progress.visibleProperty());
 
         objectList.itemsProperty().bind(listObjectsService.valueProperty());
         objectList.setCellFactory(this::createObjectCell);
 
+        // 活性条件をバインディング
+        bucket.disableProperty().bind(progress.visibleProperty());
+        refreshBucketsButton.disableProperty().bind(progress.visibleProperty());
+        createBucketButton.disableProperty().bind(progress.visibleProperty());
         BooleanBinding bucketNotSelected = Bindings.isNull(bucket.valueProperty());
         deleteBucketButton.disableProperty().bind(bucketNotSelected.or(progress.visibleProperty()));
         uploadButton.disableProperty().bind(bucketNotSelected.or(progress.visibleProperty()));
@@ -158,6 +160,9 @@ public class S3BucketController implements Initializable {
         // 一旦bucket窓閉じたら全部閉じるようにしとく
         stage.setOnCloseRequest(event ->
                 objectWindows.values().stream().forEach(Stage::close));
+
+        // Bucket一覧は最初に取得しとく
+        listBucketsService.start();
     }
 
     private ListCell<Bucket> createBucketCell(ListView<Bucket> listView) {
