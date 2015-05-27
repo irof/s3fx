@@ -34,7 +34,6 @@ import java.util.function.Supplier;
  */
 public class S3BucketController implements Initializable {
     private final S3Wrapper client;
-    public ProgressIndicator progress;
     private Optional<Bucket> currentBucket = Optional.empty();
 
     private final Stage stage;
@@ -42,12 +41,14 @@ public class S3BucketController implements Initializable {
 
     public ComboBox<Bucket> bucket;
     private ObservableList<Bucket> buckets = FXCollections.observableArrayList();
-    public Button deleteButton;
-    public Button uploadButton;
-
-    public ListView<S3ObjectSummary> objectList;
+    public Button refreshBucketsButton;
     public Button createBucketButton;
     public Button deleteBucketButton;
+
+    public ListView<S3ObjectSummary> objectList;
+    public ProgressIndicator progress;
+    public Button deleteButton;
+    public Button uploadButton;
 
     private final Service<ObservableList<S3ObjectSummary>> listObjectsService;
 
@@ -122,6 +123,10 @@ public class S3BucketController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         getBuckets();
+
+        // サービス実行中にインジケーター表示
+        progress.visibleProperty().bind(listObjectsService.runningProperty());
+
         bucket.setItems(buckets);
         bucket.setCellFactory(this::createBucketCell);
         bucket.setConverter(new StringConverter<Bucket>() {
@@ -140,16 +145,17 @@ public class S3BucketController implements Initializable {
             currentBucket = Optional.ofNullable(newValue);
             listObjectsService.restart();
         });
+        bucket.disableProperty().bind(progress.visibleProperty());
+        refreshBucketsButton.disableProperty().bind(progress.visibleProperty());
+        createBucketButton.disableProperty().bind(progress.visibleProperty());
 
         objectList.itemsProperty().bind(listObjectsService.valueProperty());
-
         objectList.setCellFactory(this::createObjectCell);
-        progress.visibleProperty().bind(listObjectsService.runningProperty());
 
         BooleanBinding bucketNotSelected = Bindings.isNull(bucket.valueProperty());
-        deleteBucketButton.disableProperty().bind(bucketNotSelected);
-        uploadButton.disableProperty().bind(bucketNotSelected);
-        deleteButton.disableProperty().bind(bucketNotSelected
+        deleteBucketButton.disableProperty().bind(bucketNotSelected.or(progress.visibleProperty()));
+        uploadButton.disableProperty().bind(bucketNotSelected.or(progress.visibleProperty()));
+        deleteButton.disableProperty().bind(bucketNotSelected.or(progress.visibleProperty())
                 .or(objectList.getSelectionModel().selectedItemProperty().isNull()));
 
         // 一旦bucket窓閉じたら全部閉じるようにしとく

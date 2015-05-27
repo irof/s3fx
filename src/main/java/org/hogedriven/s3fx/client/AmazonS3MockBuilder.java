@@ -7,6 +7,7 @@ import java.lang.reflect.Proxy;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,7 +27,7 @@ public class AmazonS3MockBuilder {
         return (proxy, method, args) -> {
             System.out.printf("invoke: %s %s(%s)%n",
                     method.getReturnType().getSimpleName(), method.getName(), Arrays.toString(args));
-            //TimeUnit.SECONDS.sleep(3);
+            TimeUnit.SECONDS.sleep(3);
             switch (method.getName()) {
                 case "listBuckets":
                     return Arrays.asList(createBucket("hoge"), createBucket("fuga"), createBucket("piyo"));
