@@ -63,23 +63,7 @@ public class S3ObjectController implements Initializable {
             stage.setTitle("保存先ディレクトリを選ぶのです");
             File dir = chooser.showDialog(stage);
             if (dir != null) {
-                File destFile = new File(dir, new File(key.getText()).getName());
-                // 上書きはしない
-                if (destFile.exists()) {
-                    throw new UnsupportedOperationException("同じ名前のファイルがあるよ");
-                }
-                Service<Void> service = new Service<Void>() {
-                    @Override
-                    protected Task<Void> createTask() {
-                        return new Task<Void>() {
-                            @Override
-                            protected Void call() throws Exception {
-                                client.getObject(summary, destFile);
-                                return null;
-                            }
-                        };
-                    }
-                };
+                Service<Void> service = downloadService(dir);
                 indicator.visibleProperty().unbind();
                 indicator.visibleProperty().bind(service.runningProperty());
                 service.start();
@@ -87,6 +71,26 @@ public class S3ObjectController implements Initializable {
         } finally {
             stage.setTitle(title);
         }
+    }
+
+    private Service<Void> downloadService(File dir) {
+        File destFile = new File(dir, new File(key.getText()).getName());
+        // 上書きはしない
+        if (destFile.exists()) {
+            throw new UnsupportedOperationException("同じ名前のファイルがあるよ");
+        }
+        return new Service<Void>() {
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() throws Exception {
+                        client.getObject(summary, destFile);
+                        return null;
+                    }
+                };
+            }
+        };
     }
 
     @Override
