@@ -91,6 +91,19 @@ public class S3ConfigController implements Initializable {
         try (Reader reader = Files.newBufferedReader(file.toPath())) {
             Properties properties = new Properties();
             properties.load(reader);
+
+            String mode = properties.getProperty("mode", "default");
+            switch (mode) {
+                case "mock":
+                    modeGroup.selectToggle(mockMode);
+                    break;
+                case "basic":
+                    modeGroup.selectToggle(basicMode);
+                    break;
+                default:
+                    modeGroup.selectToggle(defaultMode);
+            }
+
             accessKey.setText(properties.getProperty("accessKey"));
             secretKey.setText(properties.getProperty("secretKey"));
             proxy.setText(properties.getProperty("proxy"));
