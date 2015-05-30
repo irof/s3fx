@@ -3,38 +3,61 @@ package org.hogedriven.s3fx.client;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author irof
  */
 public class AmazonS3Mock {
 
-    public static AmazonS3 createMock() {
-        return (AmazonS3) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(),
-                new Class[]{AmazonS3.class}, createInvocationHandler());
+    public static AmazonS3 createLocalFilesystemMock(String rootPath) {
+        Path root = Paths.get(rootPath);
+        return createProxy(new AmazonS3Mock() {
+            @Override
+            protected List<Bucket> listBuckets() throws IOException {
+                return Files.list(root)
+                        .filter(p -> p.toFile().isDirectory())
+                        .map(p -> new Bucket(p.toFile().getName()))
+                        .collect(toList());
+            }
+        });
     }
 
-    private static InvocationHandler createInvocationHandler() {
+    public static AmazonS3 createMock() {
+        return createProxy(new AmazonS3Mock());
+    }
+
+    private static AmazonS3 createProxy(AmazonS3Mock amazonS3Mock) {
+        return (AmazonS3) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(),
+                new Class[]{AmazonS3.class}, amazonS3Mock.createInvocationHandler());
+    }
+
+    private InvocationHandler createInvocationHandler() {
         return (proxy, method, args) -> {
             System.out.printf("invoke: %s %s(%s)%n",
                     method.getReturnType().getSimpleName(), method.getName(), Arrays.toString(args));
             TimeUnit.SECONDS.sleep(3);
             switch (method.getName()) {
                 case "listBuckets":
-                    return Arrays.asList(createBucket("hoge"), createBucket("fuga"), createBucket("piyo"));
+                    return listBuckets();
                 case "listObjects":
                     ObjectListing listing = new ObjectListing();
                     listing.getObjectSummaries().addAll(Stream.generate(AmazonS3Mock::createS3ObjectSummary)
                             .limit(20)
-                            .collect(Collectors.toList()));
+                            .collect(toList()));
                     return listing;
                 case "getObjectMetadata":
                     return getObjectMetadata();
@@ -51,6 +74,10 @@ public class AmazonS3Mock {
             }
             throw new UnsupportedOperationException(method.getName().toString());
         };
+    }
+
+    protected List<Bucket> listBuckets() throws Exception {
+        return Arrays.asList(createBucket("hoge"), createBucket("fuga"), createBucket("piyo"));
     }
 
     private static ObjectMetadata getObjectMetadata() {
