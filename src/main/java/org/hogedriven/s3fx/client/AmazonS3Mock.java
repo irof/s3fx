@@ -1,5 +1,6 @@
 package org.hogedriven.s3fx.client;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
 import java.lang.reflect.InvocationHandler;
@@ -14,16 +15,14 @@ import java.util.stream.Stream;
 /**
  * @author irof
  */
-public class AmazonS3MockBuilder {
+public class AmazonS3Mock {
 
-    public S3Adapter build() {
-        return (S3Adapter) Proxy.newProxyInstance(
-                ClassLoader.getSystemClassLoader(),
-                new Class[]{S3Adapter.class},
-                createInvocationHandler());
+    public static AmazonS3 createMock() {
+        return (AmazonS3) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(),
+                new Class[]{AmazonS3.class}, createInvocationHandler());
     }
 
-    private InvocationHandler createInvocationHandler() {
+    private static InvocationHandler createInvocationHandler() {
         return (proxy, method, args) -> {
             System.out.printf("invoke: %s %s(%s)%n",
                     method.getReturnType().getSimpleName(), method.getName(), Arrays.toString(args));
@@ -32,19 +31,25 @@ public class AmazonS3MockBuilder {
                 case "listBuckets":
                     return Arrays.asList(createBucket("hoge"), createBucket("fuga"), createBucket("piyo"));
                 case "listObjects":
-                    return Stream.generate(AmazonS3MockBuilder::createS3ObjectSummary)
+                    ObjectListing listing = new ObjectListing();
+                    listing.getObjectSummaries().addAll(Stream.generate(AmazonS3Mock::createS3ObjectSummary)
                             .limit(20)
-                            .collect(Collectors.toList());
+                            .collect(Collectors.toList()));
+                    return listing;
                 case "getObjectMetadata":
                     return getObjectMetadata();
                 case "createBucket":
                     return createBucket((String) args[0]);
+                case "getS3AccountOwner":
+                    return new Owner("mockId", "mockDisplayName");
+                case "listNextBatchOfObjects":
+                    return new ObjectListing();
                 case "deleteBucket":
                 case "putObject":
                 case "deleteObject":
                     return null;
             }
-            throw new UnsupportedOperationException(method.toString());
+            throw new UnsupportedOperationException(method.getName().toString());
         };
     }
 

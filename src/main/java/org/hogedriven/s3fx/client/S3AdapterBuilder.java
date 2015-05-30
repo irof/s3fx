@@ -16,18 +16,35 @@ import java.util.regex.Pattern;
 /**
  * @author irof
  */
-public class AmazonS3Builder {
+public class S3AdapterBuilder {
 
-    private AWSCredentials credentials;
+    /**
+     * 認証方式。デフォルトは ~/.aws/credentials を使用する。
+     */
+    private AWSCredentials credentials = new ProfileCredentialsProvider().getCredentials();
 
+    /**
+     * 接続後の確認処理。
+     * AmazonS3はインスタンス生成時に接続確認を行わないので、認証とかを確認するために何か呼び出してみる。
+     */
     private Consumer<AmazonS3> verifier = client -> {
         // デフォルトは何もしない
     };
 
+    /**
+     * 読み取り専用設定。
+     * AWSの権限があっても、うっかり更新したくない時とか。
+     */
     private boolean readOnly = false;
+
+    /**
+     * bucket固定設定。
+     * 1つのバケットだけ操作する時に。
+     */
     private String fixBucket;
 
     private final ClientConfiguration config = new ClientConfiguration();
+    private boolean mock = false;
 
     public S3Adapter build() {
         // とりあえずタイムアウトなしにしとく
@@ -51,6 +68,9 @@ public class AmazonS3Builder {
     }
 
     private AmazonS3 createAmazonS3() {
+        if (mock) {
+            return AmazonS3Mock.createMock();
+        }
         return new AmazonS3Client(credentials, config);
     }
 
@@ -67,7 +87,7 @@ public class AmazonS3Builder {
      *
      * @param proxyText プロキシ設定（フォーマット "host:port"）
      */
-    public AmazonS3Builder withProxy(String proxyText) {
+    public S3AdapterBuilder withProxy(String proxyText) {
         Pattern pattern = Pattern.compile("(.+):(\\d+)");
         Matcher matcher = pattern.matcher(proxyText);
         if (matcher.matches()) {
@@ -77,28 +97,32 @@ public class AmazonS3Builder {
         return this;
     }
 
-    public AmazonS3Builder verify(Consumer<AmazonS3> verifier) {
-        this.verifier = verifier;
+    public S3AdapterBuilder verifyIf(boolean isVerify, Consumer<AmazonS3> verifier) {
+        if (isVerify) {
+            this.verifier = verifier;
+        }
         return this;
     }
 
-    public AmazonS3Builder basic(String accessKey, String secretKey) {
-        credentials = new BasicAWSCredentials(accessKey, secretKey);
+    public S3AdapterBuilder basicIf(boolean selected, String accessKey, String secretKey) {
+        if (selected) {
+            credentials = new BasicAWSCredentials(accessKey, secretKey);
+        }
         return this;
     }
 
-    public AmazonS3Builder defaultProfile() {
-        credentials = new ProfileCredentialsProvider().getCredentials();
-        return this;
-    }
-
-    public AmazonS3Builder readOnlyLock(boolean flg) {
+    public S3AdapterBuilder readOnlyLock(boolean flg) {
         this.readOnly = flg;
         return this;
     }
 
-    public AmazonS3Builder fixBucket(String fixBucket) {
+    public S3AdapterBuilder fixBucket(String fixBucket) {
         this.fixBucket = fixBucket;
+        return this;
+    }
+
+    public S3AdapterBuilder withMock(boolean mock) {
+        this.mock = mock;
         return this;
     }
 }

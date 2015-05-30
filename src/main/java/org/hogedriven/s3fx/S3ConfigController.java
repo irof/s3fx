@@ -4,9 +4,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Owner;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import org.hogedriven.s3fx.client.AmazonS3Builder;
-import org.hogedriven.s3fx.client.AmazonS3MockBuilder;
 import org.hogedriven.s3fx.client.S3Adapter;
+import org.hogedriven.s3fx.client.S3AdapterBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,37 +39,22 @@ public class S3ConfigController implements Initializable {
     private S3Adapter createResult(ButtonType button) {
         if (button.getButtonData().isCancelButton()) return null;
 
-        if (mockMode.isSelected()) {
-            return new AmazonS3MockBuilder().build();
-        }
-
-        if (basicMode.isSelected()) {
-            return new AmazonS3Builder()
-                    .withProxy(proxy.getText())
-                    .readOnlyLock(readOnly.isSelected())
-                    .basic(accessKey.getText(), secretKey.getText())
-                    .verify(this::ownerCheck)
-                    .fixBucket(fixBucket.getText())
-                    .build();
-        }
-
-        return new AmazonS3Builder()
+        return new S3AdapterBuilder()
                 .withProxy(proxy.getText())
                 .readOnlyLock(readOnly.isSelected())
-                .defaultProfile()
-                .verify(this::ownerCheck)
+                .basicIf(basicMode.isSelected(), accessKey.getText(), secretKey.getText())
+                .verifyIf(connectCheck.isSelected(), this::ownerCheck)
                 .fixBucket(fixBucket.getText())
+                .withMock(mockMode.isSelected())
                 .build();
     }
 
     private void ownerCheck(AmazonS3 client) {
-        if (connectCheck.isSelected()) {
-            Owner owner = client.getS3AccountOwner();
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText("S3に接続できました");
-            alert.setContentText("Account Owner Name: " + owner.getDisplayName());
-            alert.showAndWait();
-        }
+        Owner owner = client.getS3AccountOwner();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText("S3に接続できました");
+        alert.setContentText("Account Owner Name: " + owner.getDisplayName());
+        alert.showAndWait();
     }
 
     @Override
