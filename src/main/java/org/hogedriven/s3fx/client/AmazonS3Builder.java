@@ -20,7 +20,10 @@ public class AmazonS3Builder {
 
     private AWSCredentials credentials;
 
-    private Consumer<AmazonS3> verifier;
+    private Consumer<AmazonS3> verifier = client -> {
+        // デフォルトは何もしない
+    };
+
     private boolean readOnly = false;
     private String fixBucket;
 
@@ -31,7 +34,7 @@ public class AmazonS3Builder {
         config.withConnectionTimeout(0).withSocketTimeout(0);
 
         AmazonS3 client = createAmazonS3();
-        if (verifier != null) verifier.accept(client);
+        verifier.accept(client);
 
         return createProxy(client);
     }
