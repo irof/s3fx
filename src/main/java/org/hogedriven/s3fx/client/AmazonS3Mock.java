@@ -3,6 +3,7 @@ package org.hogedriven.s3fx.client;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
@@ -29,9 +30,25 @@ public class AmazonS3Mock {
             @Override
             protected List<Bucket> listBuckets() throws IOException {
                 return Files.list(root)
-                        .filter(p -> p.toFile().isDirectory())
-                        .map(p -> new Bucket(p.toFile().getName()))
+                        .map(Path::toFile)
+                        .filter(File::isDirectory)
+                        .map(f -> new Bucket(f.getName()))
                         .collect(toList());
+            }
+
+            @Override
+            protected Object listObjects(String bucketName) throws Exception {
+                ObjectListing listing = new ObjectListing();
+                listing.getObjectSummaries().addAll(
+                        Files.list(root.resolve(bucketName))
+                                .map(Path::toFile)
+                                .map(f -> {
+                                    S3ObjectSummary summary = new S3ObjectSummary();
+                                    summary.setKey(f.getName());
+                                    return summary;
+                                })
+                                .collect(toList()));
+                return listing;
             }
         });
     }
@@ -54,11 +71,7 @@ public class AmazonS3Mock {
                 case "listBuckets":
                     return listBuckets();
                 case "listObjects":
-                    ObjectListing listing = new ObjectListing();
-                    listing.getObjectSummaries().addAll(Stream.generate(AmazonS3Mock::createS3ObjectSummary)
-                            .limit(20)
-                            .collect(toList()));
-                    return listing;
+                    return listObjects((String) args[0]);
                 case "getObjectMetadata":
                     return getObjectMetadata();
                 case "createBucket":
@@ -74,6 +87,14 @@ public class AmazonS3Mock {
             }
             throw new UnsupportedOperationException(method.getName().toString());
         };
+    }
+
+    protected Object listObjects(String arg) throws Exception {
+        ObjectListing listing = new ObjectListing();
+        listing.getObjectSummaries().addAll(Stream.generate(AmazonS3Mock::createS3ObjectSummary)
+                .limit(20)
+                .collect(toList()));
+        return listing;
     }
 
     protected List<Bucket> listBuckets() throws Exception {
