@@ -31,6 +31,7 @@ public class S3ConfigController implements Initializable {
     public CheckBox readOnly;
     public TextField fixBucket;
     public CheckBox connectCheck;
+    private S3AdapterBuilder builder;
 
     public S3ConfigController(Dialog<S3Adapter> dialog) {
         dialog.setResultConverter(this::createResult);
@@ -39,13 +40,8 @@ public class S3ConfigController implements Initializable {
     private S3Adapter createResult(ButtonType button) {
         if (button.getButtonData().isCancelButton()) return null;
 
-        return new S3AdapterBuilder()
-                .withProxy(proxy.getText())
-                .readOnlyLock(readOnly.isSelected())
-                .basicIf(basicMode.isSelected(), accessKey.getText(), secretKey.getText())
+        return builder
                 .verifyIf(connectCheck.isSelected(), this::ownerCheck)
-                .fixBucket(fixBucket.getText())
-                .withMock(mockMode.isSelected())
                 .build();
     }
 
@@ -63,37 +59,40 @@ public class S3ConfigController implements Initializable {
         secretKey.disableProperty().bind(basicMode.selectedProperty().not());
         proxy.disableProperty().bind(mockMode.selectedProperty());
 
-        loadProperty();
+        bindBuilder();
     }
 
-    /**
-     * プロパティファイルがあったら読む。
-     */
-    private void loadProperty() {
+    private void bindBuilder() {
+        Properties properties = new Properties();
         File file = new File("s3fx.properties");
-        if (!file.exists()) return;
-        try (Reader reader = Files.newBufferedReader(file.toPath())) {
-            Properties properties = new Properties();
-            properties.load(reader);
-
-            String mode = properties.getProperty("mode", "default");
-            switch (mode) {
-                case "mock":
-                    modeGroup.selectToggle(mockMode);
-                    break;
-                case "basic":
-                    modeGroup.selectToggle(basicMode);
-                    break;
-                default:
-                    modeGroup.selectToggle(defaultMode);
+        if (file.exists()) {
+            try (Reader reader = Files.newBufferedReader(file.toPath())) {
+                properties.load(reader);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
+        }
+        builder = new S3AdapterBuilder(properties);
 
-            accessKey.setText(properties.getProperty("accessKey"));
-            secretKey.setText(properties.getProperty("secretKey"));
-            proxy.setText(properties.getProperty("proxy"));
-            fixBucket.setText(properties.getProperty("fixBucket"));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        accessKey.textProperty().bindBidirectional(builder.accessKey);
+        secretKey.textProperty().bindBidirectional(builder.secretKey);
+        proxy.textProperty().bindBidirectional(builder.proxy);
+        fixBucket.textProperty().bindBidirectional(builder.bucket);
+        readOnly.selectedProperty().bindBidirectional(builder.readOnly);
+
+        basicMode.selectedProperty().bindBidirectional(builder.basicMode);
+        mockMode.selectedProperty().bindBidirectional(builder.mockMode);
+
+        String mode = properties.getProperty("mode", "default");
+        switch (mode) {
+            case "mock":
+                modeGroup.selectToggle(mockMode);
+                break;
+            case "basic":
+                modeGroup.selectToggle(basicMode);
+                break;
+            default:
+                modeGroup.selectToggle(defaultMode);
         }
     }
 }
