@@ -29,18 +29,29 @@ public class AmazonS3Builder {
     public S3Adapter build() {
         // とりあえずタイムアウトなしにしとく
         config.withConnectionTimeout(0).withSocketTimeout(0);
-        AmazonS3Client client = new AmazonS3Client(credentials, config);
+
+        AmazonS3 client = createAmazonS3();
         if (verifier != null) verifier.accept(client);
 
-        S3Adapter s3Adapter = (fixBucket != null && !fixBucket.isEmpty()) ?
-                new SingleBucketS3Adapter(client, fixBucket) : new S3AdapterImpl(client);
-        return (S3Adapter) Proxy.newProxyInstance(
-                ClassLoader.getSystemClassLoader(),
-                new Class[]{S3Adapter.class},
-                createInvocationHandler(s3Adapter));
+        return createProxy(client);
     }
 
-    private InvocationHandler createInvocationHandler(S3Adapter s3Adapter) {
+    private S3Adapter createProxy(AmazonS3 client) {
+        return (S3Adapter) Proxy.newProxyInstance(
+                ClassLoader.getSystemClassLoader(), new Class[]{S3Adapter.class},
+                handling(createAdapter(client)));
+    }
+
+    private S3Adapter createAdapter(AmazonS3 client) {
+        return (fixBucket != null && !fixBucket.isEmpty()) ?
+                new SingleBucketS3Adapter(client, fixBucket) : new S3AdapterImpl(client);
+    }
+
+    private AmazonS3 createAmazonS3() {
+        return new AmazonS3Client(credentials, config);
+    }
+
+    private InvocationHandler handling(S3Adapter s3Adapter) {
         return (proxy, method, args) -> {
             if (readOnly && method.isAnnotationPresent(Bang.class))
                 throw new IllegalStateException("ちゃいるどろっくなう");
