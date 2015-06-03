@@ -30,7 +30,13 @@
       </HBox>
       <StackPane VBox.vgrow="ALWAYS">
          <children>
-            <ListView fx:id="objectList" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" VBox.vgrow="ALWAYS" />
+            <TableView fx:id="objectList" prefHeight="200.0" prefWidth="200.0">
+              <columns>
+                <TableColumn fx:id="tableNameColumn" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefWidth="200.0" text="Key" />
+                <TableColumn fx:id="tableSizeColumn" prefWidth="75.0" text="サイズ" />
+                  <TableColumn fx:id="tableLastModifiedColumn" prefWidth="75.0" text="最終更新" />
+              </columns>
+            </TableView>
             <ProgressIndicator fx:id="progress" visible="false" />
          </children>
       </StackPane>

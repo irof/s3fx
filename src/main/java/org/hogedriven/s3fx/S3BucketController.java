@@ -13,6 +13,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
@@ -25,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -44,14 +46,18 @@ public class S3BucketController implements Initializable {
     public Button createBucketButton;
     public Button deleteBucketButton;
 
-    public ListView<S3ObjectSummary> objectList;
     public ProgressIndicator progress;
     public Button deleteButton;
     public Button uploadButton;
+    public TextField filterText;
+
+    public TableView<S3ObjectSummary> objectList;
+    public TableColumn<S3ObjectSummary, String> tableNameColumn;
+    public TableColumn<S3ObjectSummary, Long> tableSizeColumn;
+    public TableColumn<S3ObjectSummary, Date> tableLastModifiedColumn;
 
     private final Service<ObservableList<Bucket>> listBucketsService;
     private final Service<ObservableList<S3ObjectSummary>> listObjectsService;
-    public TextField filterText;
 
     public S3BucketController(Stage stage, S3Adapter client) {
         this.stage = stage;
@@ -149,7 +155,29 @@ public class S3BucketController implements Initializable {
         });
 
         objectList.itemsProperty().bind(listObjectsService.valueProperty());
-        objectList.setCellFactory(this::createObjectCell);
+        objectList.setRowFactory(table -> {
+            TableRow<S3ObjectSummary> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                S3ObjectSummary item = row.getItem();
+                if (item == null) return;
+                S3ObjectIdentifier id = new S3ObjectIdentifier(item);
+                if (objectWindows.containsKey(id)) {
+                    objectWindows.get(id).requestFocus();
+                } else {
+                    Stage objectWindow = createS3ObjectWindow(item);
+                    // 上を合わせて右に並べて出す
+                    objectWindow.setX(stage.getX() + stage.getWidth());
+                    objectWindow.setY(stage.getY());
+                    objectWindow.show();
+                    objectWindows.put(id, objectWindow);
+                    objectWindow.setOnCloseRequest(e -> objectWindows.remove(id));
+                }
+            });
+            return row;
+        });
+        tableNameColumn.setCellValueFactory(new PropertyValueFactory<>("key"));
+        tableSizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
+        tableLastModifiedColumn.setCellValueFactory(new PropertyValueFactory<>("lastModified"));
 
         // 活性条件をバインディング
         bucket.disableProperty().bind(progress.visibleProperty());
@@ -177,33 +205,6 @@ public class S3BucketController implements Initializable {
                 setText(empty ? "" : item.getName());
             }
         };
-    }
-
-    private ListCell<S3ObjectSummary> createObjectCell(ListView<S3ObjectSummary> s3ObjectSummaryListView) {
-        ListCell<S3ObjectSummary> listCell = new ListCell<S3ObjectSummary>() {
-            @Override
-            protected void updateItem(S3ObjectSummary item, boolean empty) {
-                super.updateItem(item, empty);
-                setDisable(empty);
-                setText(empty ? "" : item.getKey());
-            }
-        };
-        listCell.setOnMouseClicked(event -> {
-            S3ObjectSummary item = listCell.getItem();
-            S3ObjectIdentifier id = new S3ObjectIdentifier(item);
-            if (objectWindows.containsKey(id)) {
-                objectWindows.get(id).requestFocus();
-            } else if (event.getClickCount() == 2) {
-                Stage objectWindow = createS3ObjectWindow(item);
-                // 上を合わせて右に並べて出す
-                objectWindow.setX(stage.getX() + stage.getWidth());
-                objectWindow.setY(stage.getY());
-                objectWindow.show();
-                objectWindows.put(id, objectWindow);
-                objectWindow.setOnCloseRequest(e -> objectWindows.remove(id));
-            }
-        });
-        return listCell;
     }
 
     private Stage createS3ObjectWindow(S3ObjectSummary item) {
