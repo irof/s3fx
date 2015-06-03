@@ -159,7 +159,7 @@ public class S3BucketController implements Initializable {
             TableRow<S3ObjectSummary> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 S3ObjectSummary item = row.getItem();
-                if (item == null) return;
+                if (item == null || event.getClickCount() != 2) return;
                 S3ObjectIdentifier id = new S3ObjectIdentifier(item);
                 if (objectWindows.containsKey(id)) {
                     objectWindows.get(id).requestFocus();
