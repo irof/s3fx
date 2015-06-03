@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -177,7 +179,21 @@ public class S3BucketController implements Initializable {
         });
         tableNameColumn.setCellValueFactory(new PropertyValueFactory<>("key"));
         tableSizeColumn.setCellValueFactory(new PropertyValueFactory<>("size"));
+        tableSizeColumn.setCellFactory(data -> new TableCell<S3ObjectSummary, Long>() {
+            @Override
+            protected void updateItem(Long item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? "" : NumberFormat.getNumberInstance().format(item));
+            }
+        });
         tableLastModifiedColumn.setCellValueFactory(new PropertyValueFactory<>("lastModified"));
+        tableLastModifiedColumn.setCellFactory(data -> new TableCell<S3ObjectSummary, Date>() {
+            @Override
+            protected void updateItem(Date item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? "" : new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(item));
+            }
+        });
 
         // 活性条件をバインディング
         bucket.disableProperty().bind(progress.visibleProperty());
