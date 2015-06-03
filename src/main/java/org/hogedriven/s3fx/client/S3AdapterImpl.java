@@ -4,7 +4,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,14 +42,9 @@ public class S3AdapterImpl implements S3Adapter {
     }
 
     @Override
-    public List<S3ObjectSummary> listObjects(Bucket bucket) {
-        List<S3ObjectSummary> objects = new ArrayList<>();
-        ObjectListing listing = client.listObjects(bucket.getName());
-        do {
-            objects.addAll(listing.getObjectSummaries());
-            listing = client.listNextBatchOfObjects(listing);
-        } while (listing.getMarker() != null);
-        return objects;
+    public List<S3ObjectSummary> listObjects(Bucket bucket, String prefix) {
+        ObjectListing listing = client.listObjects(bucket.getName(), prefix);
+        return listing.getObjectSummaries();
     }
 
     @Override

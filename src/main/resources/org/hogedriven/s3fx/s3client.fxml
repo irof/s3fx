@@ -17,13 +17,18 @@
             <Button fx:id="deleteBucketButton" maxWidth="-Infinity" mnemonicParsing="false" onAction="#deleteBucket" text="-" />
          </children>
       </HBox>
-      <HBox spacing="5.0">
+      <HBox alignment="CENTER_LEFT" spacing="5.0">
          <children>
             <Button fx:id="uploadButton" mnemonicParsing="false" onAction="#uploadFile" text="Upload" />
             <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#deleteFile" text="Delete" />
          </children>
       </HBox>
-      <StackPane>
+      <HBox>
+         <children>
+            <TextField fx:id="filterText" onKeyPressed="#searchObjects" promptText="絞り込み（前方一致）" HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      <StackPane VBox.vgrow="ALWAYS">
          <children>
             <ListView fx:id="objectList" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" VBox.vgrow="ALWAYS" />
             <ProgressIndicator fx:id="progress" visible="false" />

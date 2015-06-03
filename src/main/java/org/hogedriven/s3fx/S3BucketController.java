@@ -13,6 +13,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -49,6 +51,7 @@ public class S3BucketController implements Initializable {
 
     private final Service<ObservableList<Bucket>> listBucketsService;
     private final Service<ObservableList<S3ObjectSummary>> listObjectsService;
+    public TextField filterText;
 
     public S3BucketController(Stage stage, S3Adapter client) {
         this.stage = stage;
@@ -56,7 +59,8 @@ public class S3BucketController implements Initializable {
         this.listBucketsService = createS3Service(() ->
                 FXCollections.observableArrayList(client.listBuckets()));
         this.listObjectsService = createS3Service(() ->
-                FXCollections.observableArrayList(client.listObjects(bucket.getValue())));
+                FXCollections.observableArrayList(
+                        client.listObjects(bucket.getValue(), filterText.getText())));
     }
 
     private <T> Service<T> createS3Service(Supplier<T> task) {
@@ -213,5 +217,10 @@ public class S3BucketController implements Initializable {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public void searchObjects(KeyEvent event) {
+        if (KeyCode.ENTER == event.getCode())
+            listObjectsService.restart();
     }
 }

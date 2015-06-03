@@ -23,7 +23,7 @@ public interface S3Adapter {
     @Bang
     void deleteObject(S3ObjectSummary summary);
 
-    List<S3ObjectSummary> listObjects(Bucket bucket);
+    List<S3ObjectSummary> listObjects(Bucket bucket, String text);
 
     S3Object getObject(S3ObjectSummary summary);
 
