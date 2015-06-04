@@ -46,8 +46,8 @@ public class S3ObjectController implements Initializable {
     }
 
     public void onObservation() throws Exception {
-        S3Object object = client.getObject(summary);
-        try (S3ObjectInputStream content = object.getObjectContent()) {
+        try (S3Object object = client.getObject(summary);
+             S3ObjectInputStream content = object.getObjectContent()) {
             byte[] bytes = new byte[(int) observationSize.getValue()];
             content.read(bytes);
             String text = new String(bytes, observationCharset.getValue());
