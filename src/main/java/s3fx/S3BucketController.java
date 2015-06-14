@@ -1,4 +1,4 @@
-package org.hogedriven.s3fx;
+package s3fx;
 
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -20,7 +20,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.StringConverter;
-import org.hogedriven.s3fx.client.S3Adapter;
+import s3fx.client.S3Adapter;
 
 import java.io.File;
 import java.io.IOException;

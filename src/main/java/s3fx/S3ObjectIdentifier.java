@@ -1,4 +1,4 @@
-package org.hogedriven.s3fx;
+package s3fx;
 
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 

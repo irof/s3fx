@@ -1,4 +1,4 @@
-package org.hogedriven.s3fx;
+package s3fx;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -8,7 +8,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
-import org.hogedriven.s3fx.client.S3Adapter;
+import s3fx.client.S3Adapter;
 
 import java.io.IOException;
 import java.io.PrintWriter;

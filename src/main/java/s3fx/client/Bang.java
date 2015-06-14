@@ -1,4 +1,4 @@
-package org.hogedriven.s3fx.client;
+package s3fx.client;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,11 +1,11 @@
-package org.hogedriven.s3fx;
+package s3fx;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Owner;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import org.hogedriven.s3fx.client.S3Adapter;
-import org.hogedriven.s3fx.client.S3AdapterBuilder;
+import s3fx.client.S3Adapter;
+import s3fx.client.S3AdapterBuilder;
 
 import java.io.File;
 import java.io.IOException;

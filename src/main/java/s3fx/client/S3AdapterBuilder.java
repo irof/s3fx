@@ -1,4 +1,4 @@
-package org.hogedriven.s3fx.client;
+package s3fx.client;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
@@ -12,7 +12,6 @@ import javafx.beans.property.SimpleStringProperty;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;

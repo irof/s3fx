@@ -1,4 +1,4 @@
-package org.hogedriven.s3fx;
+package s3fx;
 
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
@@ -11,7 +11,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import org.hogedriven.s3fx.client.S3Adapter;
+import s3fx.client.S3Adapter;
 
 import java.io.File;
 import java.net.URL;

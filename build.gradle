@@ -7,7 +7,7 @@ compileJava {
 
 sourceCompatibility = targetCompatibility = 1.8
 
-mainClassName = "org.hogedriven.s3fx.Starter"
+mainClassName = "s3fx.Starter"
 
 repositories {
   mavenLocal()
