@@ -24,10 +24,17 @@ public class Starter extends Application {
     public void start(Stage stage) throws Exception {
         S3Adapter client = createAmazonS3Client();
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("s3client.fxml"));
-        loader.setControllerFactory(clz -> new S3BucketController(stage, client));
+        if (Boolean.valueOf(System.getProperty("listing", "false"))) {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("lister.fxml"));
+            loader.setControllerFactory(clz -> new ListerController(stage, client));
+            stage.setScene(new Scene(loader.load()));
+        } else {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("s3client.fxml"));
+            loader.setControllerFactory(clz -> new S3BucketController(stage, client));
+            stage.setScene(new Scene(loader.load()));
+        }
+
         stage.setTitle("S3FX - JavaFX Amazon S3 Client");
-        stage.setScene(new Scene(loader.load()));
 
         setExceptionHandler();
         stage.show();

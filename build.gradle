@@ -8,6 +8,7 @@ compileJava {
 sourceCompatibility = targetCompatibility = 1.8
 
 mainClassName = "s3fx.Starter"
+//applicationDefaultJvmArgs = ["-Dlisting=true"]
 
 repositories {
   mavenLocal()
