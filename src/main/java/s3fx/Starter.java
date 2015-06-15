@@ -25,8 +25,8 @@ public class Starter extends Application {
         S3Adapter client = createAmazonS3Client();
 
         if (Boolean.valueOf(System.getProperty("listing", "false"))) {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("lister.fxml"));
-            loader.setControllerFactory(clz -> new ListerController(stage, client));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("controlTower.fxml"));
+            loader.setControllerFactory(clz -> new ControlTower(stage, client));
             stage.setScene(new Scene(loader.load()));
         } else {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("s3client.fxml"));
