@@ -4,7 +4,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.Owner;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import s3fx.client.S3Adapter;
 import s3fx.client.S3AdapterBuilder;
 
 import java.io.File;
@@ -23,26 +22,34 @@ public class S3ConfigController implements Initializable {
 
     public TextField accessKey;
     public PasswordField secretKey;
+
     public ToggleGroup modeGroup;
-    public TextField proxy;
     public RadioButton defaultMode;
     public RadioButton mockMode;
     public RadioButton basicMode;
+
+    public TextField proxy;
     public CheckBox readOnly;
     public TextField fixBucket;
     public CheckBox connectCheck;
+
+    public ToggleGroup clientType;
+    public RadioButton normalClient;
+    public RadioButton bucketsClient;
+
     private S3AdapterBuilder builder;
 
-    public S3ConfigController(Dialog<S3Adapter> dialog) {
+    public S3ConfigController(Dialog<S3fxConfig> dialog) {
         dialog.setResultConverter(this::createResult);
     }
 
-    private S3Adapter createResult(ButtonType button) {
+    private S3fxConfig createResult(ButtonType button) {
         if (button.getButtonData().isCancelButton()) return null;
 
-        return builder
-                .verifyIf(connectCheck.isSelected(), this::ownerCheck)
-                .build();
+        Class<?> clientClass = (Class<?>) clientType.getSelectedToggle().getUserData();
+        return new S3fxConfig(
+                builder.verifyIf(connectCheck.isSelected(), this::ownerCheck),
+                clientClass);
     }
 
     private void ownerCheck(AmazonS3 client) {
@@ -94,5 +101,8 @@ public class S3ConfigController implements Initializable {
             default:
                 modeGroup.selectToggle(defaultMode);
         }
+
+        normalClient.setUserData(S3BucketController.class);
+        bucketsClient.setUserData(ControlTower.class);
     }
 }

@@ -22,9 +22,10 @@ public class Starter extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        S3Adapter client = createAmazonS3Client();
+        S3fxConfig config = createAmazonS3Client();
+        S3Adapter client = config.adapterBuilder.build();
 
-        if (Boolean.valueOf(System.getProperty("listing", "false"))) {
+        if (config.client == ControlTower.class) {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("controlTower.fxml"));
             loader.setControllerFactory(clz -> new ControlTower(stage, client));
             stage.setScene(new Scene(loader.load()));
@@ -40,8 +41,8 @@ public class Starter extends Application {
         stage.show();
     }
 
-    private S3Adapter createAmazonS3Client() throws IOException {
-        Dialog<S3Adapter> dialog = new Dialog<>();
+    private S3fxConfig createAmazonS3Client() throws IOException {
+        Dialog<S3fxConfig> dialog = new Dialog<>();
 
         FXMLLoader loader = new FXMLLoader(this.getClass().getResource("s3config.fxml"));
         loader.setControllerFactory(clz -> new S3ConfigController(dialog));
